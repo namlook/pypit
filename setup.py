@@ -41,11 +41,11 @@ setup(
     version = '0.1',
 
     description = 'Shell pipeline builder',
-    long_description = codecs.open('README', "r", "utf-8").read(),
+    long_description = codecs.open('README.rst', "r", "utf-8").read(),
     author = 'Namlook',
     license = 'New BSD License',
     scripts=["bin/pypit"],
-    url = '',
+    url = 'http://github.com/namlook/pypit',
 
     classifiers = [
         'Development Status :: 4 - Beta',
