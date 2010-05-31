@@ -31,11 +31,21 @@ import shlex
 
 class Pypit(object):
     def __init__(self, config):
+        """
+        config: a python dict which describes the config to use (please, see the doc)
+        """
         self._programmes = []
         for prog in config:
             self._programmes.append(prog)
 
-    def run(self):
+    def run(self, input_file=None):
+        """
+        run the pipeline from config.
+
+        input: an input file. Usefull to set up a pipe with a dynamic file
+        returns the final results
+        """
+        p = None
         for prog in self._programmes:
             args = [os.path.join(prog['path'], prog['name'])]
             if prog.get('options'):
@@ -50,7 +60,12 @@ class Pypit(object):
                 kwargs['stdout'] = PIPE
             input = prog.get('input')
             if input == 'STDIN':
-                kwargs['stdin'] = p.stdout
+                if p is None:
+                    if input_file is None:
+                        raise ValueError('It seems like you want to use dynamic input. Please specify an input_file value')
+                    kwargs['stdin'] = input_file
+                else:
+                    kwargs['stdin'] = p.stdout
             elif input:
                 kwargs['stdin'] = open(input, 'r')
             p = Popen(args, **kwargs)

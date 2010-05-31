@@ -72,6 +72,31 @@ Sometimes, we need to call direclty shell command. To do so, add `'shell' = True
     >>> Pypit(config).run()
     '6\n'
 
+Dynamic file
+-------------
+
+Sometime, we may need to use file with differents names. Pypit provides an easy way to do it::
+
+    >>> config = [
+    ...    {
+    ...        "path": "/usr/bin",
+    ...        "name": 'sort',
+    ...        "input": 'STDIN',
+    ...        "option": '-r',
+    ...    },
+    ...    {
+    ...        "path": "/usr/bin",
+    ...        "name": "wc",
+    ...        "input": "STDIN",
+    ...        "options": "-l"
+    ...    }
+    ...]
+
+The first item of our config use `STDIN` for input. Then you can pass any file to the `run()` method::
+
+    >>> pypit = Pypit(config)
+    >>> pypit.run(file_input=open('file.txt', 'r'))
+
 
 Shell script usage
 ------------------
@@ -95,5 +120,19 @@ then call the `pypit` programme with the config file as argument::
     $ pypit config.yaml
     6
 
+If you build your config to handle dynamic file, you can pass those file in arguments::
 
+    -
+        path: /usr/bin
+        name: sort
+        input: STDIN
+        options: -r
+    -
+        path: /usr/bin
+        name: wc
+        input: STDIN
+        options: -l
+
+    $ pypit config.yaml file.txt
+    6
 

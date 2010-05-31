@@ -117,4 +117,21 @@ class PypitTestCase(unittest.TestCase):
         assert result == '9\n', "+"+result+"+"
 
 
+    def test_dynamic_input(self):
+        config = """
+-
+    path: /usr/bin
+    name: sort
+    input: STDIN
+    options: -r
+-
+    path: /usr/bin
+    name: wc
+    input: STDIN
+    options: -l
+"""
+        result = Pypit(config=yaml.load(config)).run(input_file=open('tests/test_file.txt','r'))
+        assert result == '9\n', "+"+result+"+"
+
+
 

@@ -30,8 +30,12 @@ import yaml
 from pypit import Pypit
 
 import sys
-if not len(sys.argv) == 2:
+if not len(sys.argv) in [2,3]:
     sys.exit('usage: pypit config.yaml')
 config_file_name = sys.argv[1]
 config = yaml.load(open(config_file_name).read())
-print Pypit(config).run()
+pypit = Pypit(config)
+input_file = None
+if len(sys.argv) == 3:
+    input_file = open(sys.argv[2], 'r')
+print pypit.run(input_file=input_file)
