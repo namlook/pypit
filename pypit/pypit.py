@@ -49,6 +49,8 @@ class Pypit(object):
         for prog in self._programmes:
             args = [os.path.join(prog['path'], prog['name'])]
             if prog.get('options'):
+                if isinstance(prog['options'], unicode):
+                    prog['options'] = prog['options'].encode('utf-8')
                 args.extend(shlex.split(prog['options']))
             kwargs = {}
             if prog.get('shell'):
