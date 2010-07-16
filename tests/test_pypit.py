@@ -33,6 +33,9 @@ import yaml
 
 class PypitTestCase(unittest.TestCase):
 
+    def setUp(self):
+        open('tests/test_file.txt', 'w').write('1\n5\n3\n4\n6\n8\n9\n2\n7\n')
+
     def tearDown(self):
        if 'pypit_test_buf' in os.listdir('/tmp'):
            os.remove('/tmp/pypit_test_buf') 
@@ -40,45 +43,34 @@ class PypitTestCase(unittest.TestCase):
     def test_pipe_via_stdin(self):
         config = """
 - 
-    path: /bin
-    name: cat
-    options: ./tests/test_file.txt
+    cmd: cat {{input}}
 
 - 
-    path: /usr/bin
-    name: sort
-    input: STDIN
+    cmd: sort 
+    use_stdin: true
 """
-        assert Pypit(config=yaml.load(config)).run() == '1\n2\n3\n4\n5\n6\n7\n8\n9\n'
+        res = Pypit(config=yaml.load(config)).run(file_name='test_file.txt', cwd='tests')
+        assert res  == '1\n2\n3\n4\n5\n6\n7\n8\n9\n', res
 
     def test_pipe_via_file(self):
         config = """
 - 
-    path: /bin
-    name: cat
-    options: ./tests/test_file.txt
-    output: /tmp/pypit_test_buf
-
+    cmd: cat {{input}} > {{output}}
+    output_ext:  bla
 - 
-    path: /usr/bin
-    name: sort
-    input: /tmp/pypit_test_buf
-    options: -r
+    cmd: sort -r {{input}}
 """
-        assert Pypit(config=yaml.load(config)).run() == '9\n8\n7\n6\n5\n4\n3\n2\n1\n'
+        res =  Pypit(config=yaml.load(config)).run(file_name='test_file.txt', cwd='tests')
+        assert res == '9\n8\n7\n6\n5\n4\n3\n2\n1\n', res
 
     def test_pipe_shell(self):
         config = """
 - 
-    path: /bin
-    shell: true
-    name: echo "12345"
+    cmd: echo "12345"
 
 - 
-    path: /usr/bin
-    name: wc
-    input: STDIN
-    options: -c
+    cmd: wc -c
+    use_stdin: true
 """
         result = Pypit(config=yaml.load(config)).run()
         assert result == '6\n', '+'+result+'+'
@@ -86,9 +78,7 @@ class PypitTestCase(unittest.TestCase):
     def test_pure_shell(self):
         config = """
 - 
-    path: /bin
-    shell: true
-    name: echo $PWD
+    cmd: echo $PWD
 
 """
         result = Pypit(config=yaml.load(config)).run()
@@ -97,41 +87,40 @@ class PypitTestCase(unittest.TestCase):
     def test_3_progs(self):
         config = """
 - 
-    path: /bin
-    name: cat
-    options: ./tests/test_file.txt
-    output: /tmp/pypit_test_buf
+    cmd: cat {{input}} > {{output}}
+    output_ext: buf
 
 - 
-    path: /usr/bin
-    name: sort
-    input: /tmp/pypit_test_buf
-    options: -r
+    cmd: sort -r {{input}}
 -
-    path: /usr/bin
-    name: wc
-    input: STDIN
-    options: -l
+    cmd: wc -l
+    use_stdin: true
 """
-        result =  Pypit(config=yaml.load(config)).run()
+        result =  Pypit(config=yaml.load(config)).run(file_name='test_file.txt', cwd='/home/namlook/Documents/projets/pypit/tests')
         assert result == '9\n', "+"+result+"+"
 
 
     def test_dynamic_input(self):
         config = """
 -
-    path: /usr/bin
-    name: sort
-    input: STDIN
-    options: -r
+    cmd: sort -r
+    use_stdin: true
 -
-    path: /usr/bin
-    name: wc
-    input: STDIN
-    options: -l
+    cmd: wc -l
+    use_stdin: true
 """
-        result = Pypit(config=yaml.load(config)).run(input_file=open('tests/test_file.txt','r'))
+        result = Pypit(config=yaml.load(config)).run(file_name='test_file.txt', cwd='tests')
         assert result == '9\n', "+"+result+"+"
 
-
+    def test_dynamic_input2(self):
+        config = """
+-
+    cmd: /usr/bin/sort -r
+    use_stdin: true
+-
+    cmd: /usr/bin/wc -l
+    use_stdin: true
+"""
+        result = Pypit(config=yaml.load(config)).run(file_name='test_file.txt', cwd="tests")
+        assert result == '9\n', "+"+result+"+"
 

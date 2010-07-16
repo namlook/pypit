@@ -26,8 +26,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os.path
+import os
 from subprocess import *
-import shlex
 
 class Pypit(object):
     def __init__(self, config):
@@ -35,43 +35,44 @@ class Pypit(object):
         config: a python dict which describes the config to use (please, see the doc)
         """
         self._programmes = []
+        self.last_output_ext = None
+        self.cmdline = None
         for prog in config:
             self._programmes.append(prog)
 
-    def run(self, input_file=None):
+    def run(self, file_name=None, cwd=None):
         """
         run the pipeline from config.
 
         input: an input file. Usefull to set up a pipe with a dynamic file
         returns the final results
         """
-        p = None
+        self.input_name = file_name
+        results = []
         for prog in self._programmes:
-            args = [os.path.join(prog['path'], prog['name'])]
-            if prog.get('options'):
-                if isinstance(prog['options'], unicode):
-                    prog['options'] = prog['options'].encode('utf-8')
-                args.extend(shlex.split(prog['options']))
             kwargs = {}
-            if prog.get('shell'):
-                kwargs['shell'] = True
-            output = prog.get('output')
-            if output:
-                kwargs['stdout'] = open(output, 'w')
-            else:
-                kwargs['stdout'] = PIPE
-            input = prog.get('input')
-            if input == 'STDIN':
-                if p is None:
-                    if input_file is None:
-                        raise ValueError('It seems like you want to use dynamic input. Please specify an input_file value')
-                    kwargs['stdin'] = input_file
+            if file_name:
+                if prog.get('output_ext'): 
+                    self.last_output_ext = prog.get('output_ext')
+                    output_name = '%s.%s' % (self.input_name, prog.get('output_ext'))
                 else:
-                    kwargs['stdin'] = p.stdout
-            elif input:
-                kwargs['stdin'] = open(input, 'r')
-            p = Popen(args, **kwargs)
-        return p.communicate()[0]
+                    output_name = self.input_name
+                prog['cmd'] = prog['cmd'].replace('{{input}}', self.input_name).replace('{{output}}', output_name)
+                prog['cmd'] = prog['cmd'].replace('{{cwd}}', cwd)
+                self.input_name = output_name
+            args = prog['cmd']
+            if prog.get('use_stdin'):
+                if results:
+                    results.append('|')
+                else:
+                    results.append('cat %s |' % self.input_name)
+            elif results:
+                if prog.get('skip_errors'):
+                    results.append(';')
+                else:
+                    results.append('&&')
+            results.append(args)
+        self.cmdline = " ".join(results)
+        return Popen(self.cmdline, stdout = PIPE, shell=True, cwd=cwd).stdout.read()
 
-            
-        
+

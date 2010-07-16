@@ -20,23 +20,18 @@ The following configuration will sort the `file.txt` and lower all capitalize ch
 
     >>> config = [
     ...    {
-    ...        "path": "/usr/bin",
-    ...        "name": "sort",
-    ...        "input": "file.txt",
-    ...        "options": "-r",
+    ...        "cmd": "sort -r {{input}}",
     ...    },
     ...    {
-    ...        "path": "/usr/bin",
-    ...        "name": "tr",
-    ...        "input": "STDIN",
-    ...        "options": "A-Z a-z"
+    ...        "cmd": "tr A-Z a-z",
+    ...        "use_stdin": True
     ...    }
     ...]
 
 To process this configuration::
 
     >>> from pypit import Pypit
-    >>> result = Pypit(config).run()
+    >>> result = Pypit(config).run(file_name="file.txt")
     >>> print result
     hello
     foo
@@ -46,57 +41,36 @@ To process this configuration::
 Explanation
 -----------
 
-`path`, `name` are required.
+Only `cmd` is required. This is the command line to use.
 
-you can pass all options and arguments to `options`.
+If `use_sdtin` is True, the input will be take from the standard input. 
 
-If `input` is "STDIN", the input will be take from the standard input. If `input` if a file name, this file will be used as input.
-
-If `ouput` is not defined, the output will be send to the standard output. If `output` is a file name, the output will be writed to the file.
-
-Sometimes, we need to call direclty shell command. To do so, add `'shell' = True` to the configuration and pass all options directly to `name`::
+`{{input}}` will describes the input file given to the `run` function. You can use a the `{{output}}` description to specify output file. Be carrefull to specify the `output_ext` then::
 
     >>> config = [
     ...    {
-    ...        "shell": True,
-    ...        "path": "/bin",
-    ...        "name": 'echo "12345"',
+    ...        'cmd': 'sort -r {{input}} {{output}}',
+    ...        'output_ext': sorted # we need to specify the output extension. Here, the file will be "file.txt.sorted"
     ...    },
     ...    {
-    ...        "path": "/usr/bin",
-    ...        "name": "wc",
-    ...        "input": "STDIN",
-    ...        "options": "-c"
+    ...        'cmd': 'wc -c {{input}}',
     ...    }
     ...]
-    >>> Pypit(config).run()
+    >>> Pypit(config).run(file_name='file.txt')
     '6\n'
 
-Dynamic file
--------------
+Note that if the file is in another directory, you can specify if with `cwd` argument::
 
-Sometime, we may need to use file with differents names. Pypit provides an easy way to do it::
+    >>> Pypit(config).run(file_name='file.txt', 'cwd'='/tmp')
+    '6\n'
 
-    >>> config = [
-    ...    {
-    ...        "path": "/usr/bin",
-    ...        "name": 'sort',
-    ...        "input": 'STDIN',
-    ...        "option": '-r',
-    ...    },
-    ...    {
-    ...        "path": "/usr/bin",
-    ...        "name": "wc",
-    ...        "input": "STDIN",
-    ...        "options": "-l"
-    ...    }
-    ...]
-
-The first item of our config use `STDIN` for input. Then you can pass any file to the `run()` method::
+Finally, it is possible to take a look at the generated command line via the `cmdline` attribute::
 
     >>> pypit = Pypit(config)
-    >>> pypit.run(file_input=open('file.txt', 'r'))
-
+    >>> res = pypit.run(file_name='file.txt')
+    >>> pypit.cmdline
+    'sort -r file.txt file.txt.sorted && wc -c file.txt.sorted
+            
 
 Shell script usage
 ------------------
@@ -136,3 +110,16 @@ If you build your config to handle dynamic file, you can pass those file in argu
     $ pypit config.yaml file.txt
     6
 
+
+Version
+-------
+
+v0.2.1
+~~~~~~
+
+ * fix issue when with utf-8 options
+
+v0.2
+~~~~
+
+ * add dynamic file input support
