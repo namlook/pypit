@@ -38,7 +38,7 @@ import codecs
 
 setup(
     name = 'pypit',
-    version = '0.3',
+    version = '2.2',
 
     description = 'Shell pipeline builder',
     long_description = codecs.open('README.rst', "r", "utf-8").read(),
