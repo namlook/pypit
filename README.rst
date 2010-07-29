@@ -71,6 +71,9 @@ Finally, it is possible to take a look at the generated command line via the `cm
     >>> pypit.cmdline
     'sort -r file.txt file.txt.sorted && wc -c file.txt.sorted
             
+Errors may occure in your pipeline. To debug it and display errors use the `errors` attribute which act like a file::
+
+    >>> pypit.errors.read()
 
 Shell script usage
 ------------------
@@ -113,6 +116,11 @@ If you build your config to handle dynamic file, you can pass those file in argu
 
 Version
 -------
+
+v0.2.2
+~~~~~~
+
+ * add errors handle
 
 v0.2.1
 ~~~~~~

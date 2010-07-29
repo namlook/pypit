@@ -73,6 +73,8 @@ class Pypit(object):
                     results.append('&&')
             results.append(args)
         self.cmdline = " ".join(results)
-        return Popen(self.cmdline, stdout = PIPE, shell=True, cwd=cwd).stdout.read()
+        pype = Popen(self.cmdline, stdout = PIPE, stderr=PIPE, shell=True, cwd=cwd)
+        self.errors = pype.stderr
+        return pype.stdout.read()
 
 
