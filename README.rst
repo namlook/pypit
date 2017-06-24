@@ -43,7 +43,7 @@ Explanation
 
 Only `cmd` is required. This is the command line to use.
 
-If `use_sdtin` is True, the input will be take from the standard input. 
+If `use_sdtin` is True, the input will be taken from the standard input. 
 
 `{{input}}` will describes the input file given to the `run` function. You can use a the `{{output}}` description to specify output file. Be carrefull to specify the `output_ext` then::
 
